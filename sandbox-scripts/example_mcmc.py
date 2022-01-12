@@ -13,6 +13,7 @@ from decimal import Decimal
 import math
 import datetime
 from copy import deepcopy
+import multiprocessing as mp
 
 ######################################################################################
 #  BUILD EPISIMLAB MODEL                                                             #
@@ -328,11 +329,32 @@ def MCMC(n_iterations, step_size, parameter_name, parameter_start, data):
 
     return chains
 
-def main(savepath):
+def main(savepath, n_chains=10):
 
+    # MCMC inputs
     sim_data = simulate_epidemic_hospitalizations(beta=0.5)
-    fit_data = MCMC(n_iterations=10000, step_size=0.005, parameter_name='beta', parameter_start=0.1, data=sim_data)
+    n_iter = 10000
+    step_size = 0.005
+    parameter_name = 'beta'
+    parameter_start = np.random.uniform(0, 1, size=1)
 
+    # run chains in parallel on single node
+    task_list = [(n_iter, step_size, parameter_name, parameter_start, sim_data) for n in n_chains]
+    pool = mp.Pool(n_chains)
+    results = [pool.apply_async(MCMC, t) for t in task_list]
+    pool.close()
+    outputs = []
+    chain_number = 0
+
+    # combine results, add indicator column for chain number
+    for r in results:
+        out = r.get()
+        out['chain'] = chain_number
+        chain_number += 1
+        outputs.append(out)
+
+    # save outputs as a single file
+    fit_data = pd.concat(outputs)
     fit_data.to_csv(savepath)
 
 if __name__=='__main__':
@@ -344,6 +366,6 @@ if __name__=='__main__':
 
     opts = parser.parse_args()
 
-    main(savepath = opts.outpath)
+    main(savepath=opts.outpath)
 
 
