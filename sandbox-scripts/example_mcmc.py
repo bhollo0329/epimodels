@@ -339,7 +339,7 @@ def main(savepath, n_chains=10):
     parameter_start = np.random.uniform(0, 1, size=1)
 
     # run chains in parallel on single node
-    task_list = [(n_iter, step_size, parameter_name, parameter_start, sim_data) for n in n_chains]
+    task_list = [(n_iter, step_size, parameter_name, parameter_start, sim_data) for _ in range(n_chains)]
     pool = mp.Pool(n_chains)
     results = [pool.apply_async(MCMC, t) for t in task_list]
     pool.close()
