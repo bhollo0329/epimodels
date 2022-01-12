@@ -336,7 +336,7 @@ def main(savepath, n_chains=10):
     n_iter = 10000
     step_size = 0.005
     parameter_name = 'beta'
-    parameter_start = np.random.uniform(0, 1, size=1)
+    parameter_start = np.random.uniform(0, 1, size=1).item()
 
     # run chains in parallel on single node
     task_list = [(n_iter, step_size, parameter_name, parameter_start, sim_data) for _ in range(n_chains)]
