@@ -31,7 +31,9 @@ aisd_zcta_2019 <- st_intersection(aisd_shape, tx_zcta_2019)
 
 # collect the enrollment variables and download enrollment data for AISD ZCTAs
 v18 <- load_variables(2018, dataset='acs5/subject')
-school_enrollment_2018 <- v18 %>% filter(grepl('ENROLL', v18$concept)) %>% filter(grepl('Percent', label)) # %>% filter(!('graduate' %in% 'label'))
+school_enrollment_2018_percent <- v18 %>% filter(grepl('ENROLL', v18$concept)) %>% filter(grepl('Percent', label)) # %>% filter(!('graduate' %in% 'label'))
+school_enrollment_2018_total <- v18 %>% filter(grepl('ENROLL', v18$concept)) %>% filter(grepl('Total', label)) # %>% filter(!('graduate' %in% 'label'))
+school_enrollment_2018 <- bind_rows(school_enrollment_2018_percent, school_enrollment_2018_total)
 
 enrollment_2018 <- get_acs(
   geography='zcta',
@@ -59,25 +61,25 @@ private_enrollment_wide <- private_enrollment %>%
 
 write.csv(
   public_enrollment_wide,
-  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2018_AISD_Public_School_Enrollment_Estimates_by_ZCTA.csv'
+  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2018_AISD_Public_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
   )
 
 write.csv(
   private_enrollment_wide,
-  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2018_AISD_Private_School_Enrollment_Estimates_by_ZCTA.csv'
+  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2018_AISD_Private_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
 )
 
 # repeat for 2019
 # collect the enrollment variables and download enrollment data for AISD ZCTAs
 v19 <- load_variables(2019, dataset='acs5/subject')
-school_enrollment_2019 <- v19 %>% filter(grepl('ENROLL', v19$concept)) %>% filter(grepl('Percent', label)) # %>% filter(!('graduate' %in% 'label'))
+school_enrollment_2019_percent <- v19 %>% filter(grepl('ENROLL', v19$concept)) %>% filter(grepl('Percent', label)) # %>% filter(!('graduate' %in% 'label'))
+school_enrollment_2019_total <- v19 %>% filter(grepl('ENROLL', v19$concept)) %>% filter(grepl('Total', label)) # %>% filter(!('graduate' %in% 'label'))
+school_enrollment_2019 <- bind_rows(school_enrollment_2019_percent, school_enrollment_2019_total)
 
 # geography hierarchies changed in 2019 so we have to retrieve data for all the ZCTAs...
 enrollment_2019 <- get_acs(
   geography='zcta',
   variables=school_enrollment_2019$name,
-  #state='TX',
-  #zcta=aisd_zcta_2019$GEOID10,
   year=2019,
   survey='acs5',
   show_call=TRUE,
@@ -101,10 +103,10 @@ private_enrollment_2019_wide <- private_enrollment_2019 %>%
 
 write.csv(
   public_enrollment_2019_wide,
-  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2019_AISD_Public_School_Enrollment_Estimates_by_ZCTA.csv'
+  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2019_AISD_Public_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
 )
 
 write.csv(
   private_enrollment_2019_wide,
-  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2019_AISD_Private_School_Enrollment_Estimates_by_ZCTA.csv'
+  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2019_AISD_Private_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
 )
