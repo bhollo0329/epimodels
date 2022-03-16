@@ -4,6 +4,8 @@ library(tidyverse)
 library(tidycensus)
 library(sf)
 
+### 2019 ###
+
 API_KEY <- Sys.getenv("CENSUS_API_KEY")
 census_api_key(API_KEY)
 
