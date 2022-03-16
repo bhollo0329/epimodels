@@ -1,0 +1,95 @@
+{
+    "metadata": {
+        ".zattrs": {},
+        ".zgroup": {
+            "zarr_format": 2
+        },
+        "age1_group/.zarray": {
+            "chunks": [
+                7
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "|O",
+            "fill_value": null,
+            "filters": [
+                {
+                    "id": "vlen-utf8"
+                }
+            ],
+            "order": "C",
+            "shape": [
+                7
+            ],
+            "zarr_format": 2
+        },
+        "age1_group/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "age1_group"
+            ]
+        },
+        "age2_group/.zarray": {
+            "chunks": [
+                7
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "|O",
+            "fill_value": null,
+            "filters": [
+                {
+                    "id": "vlen-utf8"
+                }
+            ],
+            "order": "C",
+            "shape": [
+                7
+            ],
+            "zarr_format": 2
+        },
+        "age2_group/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "age2_group"
+            ]
+        },
+        "weighted_daily_per_capita_contacts/.zarray": {
+            "chunks": [
+                7,
+                7
+            ],
+            "compressor": {
+                "blocksize": 0,
+                "clevel": 5,
+                "cname": "lz4",
+                "id": "blosc",
+                "shuffle": 1
+            },
+            "dtype": "<f8",
+            "fill_value": "NaN",
+            "filters": null,
+            "order": "C",
+            "shape": [
+                7,
+                7
+            ],
+            "zarr_format": 2
+        },
+        "weighted_daily_per_capita_contacts/.zattrs": {
+            "_ARRAY_DIMENSIONS": [
+                "age1_group",
+                "age2_group"
+            ]
+        }
+    },
+    "zarr_consolidated_format": 1
+}
