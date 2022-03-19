@@ -50,24 +50,10 @@ enrollment_2018 <- get_acs(
 enrollment_2018_named <- left_join(enrollment_2018, school_enrollment_2018, by=c('variable'='name'))
 enrollment_2018_named <- enrollment_2018_named %>% select(-c(moe, variable))
 
-private_enrollment <- enrollment_2018_named %>% filter(grepl('private', label))
-public_enrollment <- enrollment_2018_named %>% filter(grepl('public', label))
-
-public_enrollment_wide <- public_enrollment %>% 
-  pivot_wider(names_from='label', values_from=c('estimate'))
-
-private_enrollment_wide <- private_enrollment %>% 
-  pivot_wider(names_from='label', values_from=c('estimate'))
-
 write.csv(
-  public_enrollment_wide,
-  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2018_AISD_Public_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
+  enrollment_2018_named,
+  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2018_AISD_Public_Private_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
   )
-
-write.csv(
-  private_enrollment_wide,
-  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2018_AISD_Private_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
-)
 
 # repeat for 2019
 # collect the enrollment variables and download enrollment data for AISD ZCTAs
@@ -92,21 +78,36 @@ enrollment_2019_filtered <- enrollment_2019 %>% filter(GEOID10 %in% aisd_zcta_20
 enrollment_2019_named <- left_join(enrollment_2019_filtered, school_enrollment_2019, by=c('variable'='name'))
 enrollment_2019_named <- enrollment_2019_named %>% select(-c(moe, variable))
 
-private_enrollment_2019 <- enrollment_2019_named %>% filter(grepl('private', label))
-public_enrollment_2019 <- enrollment_2019_named %>% filter(grepl('public', label))
-
-public_enrollment_2019_wide <- public_enrollment_2019 %>% 
-  pivot_wider(names_from='label', values_from=c('estimate'))
-
-private_enrollment_2019_wide <- private_enrollment_2019 %>% 
-  pivot_wider(names_from='label', values_from=c('estimate'))
-
 write.csv(
-  public_enrollment_2019_wide,
-  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2019_AISD_Public_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
+  enrollment_2019_named,
+  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2019_AISD_Public_Private_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
 )
 
-write.csv(
-  private_enrollment_2019_wide,
-  '~/epimodels/notebooks/AustinGranularModel/Schools/data/2019_AISD_Private_School_Enrollment_Percent_and_Total_Estimates_by_ZCTA.csv'
+### Combine data sets and extract select variables
+
+enrollment_2018_named$year <- 2018
+enrollment_2019_named$year <- 2019
+enrollment_named <- bind_rows(enrollment_2018_named, enrollment_2019_named)
+
+enrollment_vars <- c(
+  "Estimate!!Total!!Population 5 to 9 years",                                                                                                                
+  "Estimate!!Total!!Population 5 to 9 years!!5 to 9 year olds enrolled in school",                                                                            
+  "Estimate!!Total!!Population 10 to 14 years",                                                                            
+  "Estimate!!Total!!Population 10 to 14 years!!10 to 14 year olds enrolled in school",
+  "Estimate!!Total!!Population 15 to 17",
+  "Estimate!!Total!!Population 15 to 17!!15 to 17 year olds enrolled in school",
+  "Estimate!!Percent in private school!!Population 5 to 9 years!!5 to 9 year olds enrolled in school",
+  "Estimate!!Percent in private school!!Population 10 to 14 years!!10 to 14 year olds enrolled in school",
+  "Estimate!!Percent in private school!!Population 15 to 17!!15 to 17 year olds enrolled in school"
 )
+
+enrollment_named_gradeschool <- enrollment_named %>%
+  filter(label %in% enrollment_vars)
+
+enrollment_gradeschool_wide <- enrollment_named_gradeschool %>% 
+  pivot_wider(names_from='label', values_from=c('estimate'))
+
+write.csv(enrollment_gradeschool_wide, 
+          '~/epimodels/notebooks/AustinGranularModel/Schools/data/2018_2019_AISD_Select_Private_School_Enrollment_Estimates_by_ZCTA.csv')
+
+

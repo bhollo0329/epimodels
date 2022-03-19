@@ -47,7 +47,7 @@ age_vars <- c(v19_male_ages$name, v19_female_ages$name)
 
 age_var_names <- bind_rows(v19_male_ages, v19_female_ages)
 
-tx_age_by_cbg <- get_acs(geography='block group', year=2019, state='TX', county='Travis',variables=age_vars, survey="acs5", show_call=TRUE)
+tx_age_by_cbg <- get_acs(geography='block group', year=2019, state='TX', county='Travis',variables=age_vars, survey="acs5", show_call=TRUE, geometry=FALSE)
 tx_age_by_cbg_labeled <- left_join(tx_age_by_cbg, age_var_names, by=c('variable'='name'))
 
 tx_age_by_cbg_labeled <- separate(tx_age_by_cbg_labeled, label, into=c('x', 'y', 'gender', 'age'), sep='!!', remove=FALSE)
@@ -65,7 +65,7 @@ age_vars_2018 <- c(v18_male_ages$name, v18_female_ages$name)
 
 age_var_names_2018 <- bind_rows(v18_male_ages, v18_female_ages)
 
-tx_age_by_cbg_2018 <- get_acs(geography='block group', year=2018, state='TX', county='Travis',variables=age_vars, survey="acs5", show_call=TRUE)
+tx_age_by_cbg_2018 <- get_acs(geography='block group', year=2018, state='TX', county='Travis',variables=age_vars, survey="acs5", show_call=TRUE, geometry=FALSE)
 tx_age_by_cbg_2018_labeled <- left_join(tx_age_by_cbg_2018, age_var_names_2018, by=c('variable'='name'))
 
 tx_age_by_cbg_2018_labeled <- separate(tx_age_by_cbg_2018_labeled, label, into=c('x', 'y', 'gender', 'age'), sep='!!', remove=FALSE)
@@ -73,4 +73,13 @@ tx_age_by_cbg_2018_labeled <- tx_age_by_cbg_2018_labeled %>% select('GEOID', 'es
 tx_age_by_cbg_2018_labeled <- tx_age_by_cbg_2018_labeled %>% group_by(GEOID, age) %>% summarise(estimate = sum(estimate))
 
 write.csv(tx_age_by_cbg_2018_labeled, '~/epimodels/notebooks/AustinGranularModel/CBG/2018_TRAVISCO_TX_CBG_age_populations.csv')
+
+### BLOCK GROUP GEOMETRIES ###
+
+library(tigris)
+cbg_2018 <- block_groups(state='TX', county='Travis', year=2018)
+st_write(cbg_2018, '~/epimodels/notebooks/AustinGranularModel/CBG/2018_TRAVISCO_TX_CBG.shp')
+
+cbg_2019 <- block_groups(state='TX', county='Travis', year=2019)
+st_write(cbg_2019, '~/epimodels/notebooks/AustinGranularModel/CBG/2019_TRAVISCO_TX_CBG.shp')
 
