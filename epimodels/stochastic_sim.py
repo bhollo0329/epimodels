@@ -1,4 +1,5 @@
 from epimodels.sepiar import SEPIRNoVis
+from epimodels.sepiar_seven_ages import SEPIRSevenAgesNoVis
 import xarray as xr
 import numpy as np
 import multiprocessing as mp
@@ -18,6 +19,16 @@ def simulate_epidemic(seed_entropy):
 
     return sim_result
 
+def simulate_granular_epidemic(seed_entropy):
+
+    sim = SEPIRSevenAgesNoVis()
+    input_vars = {
+        'setup_seed__seed_entropy': seed_entropy
+    }
+    sim_result = sim.run(input_vars=input_vars)
+
+    return sim_result
+
 
 def entropy_generator(n_sims):
 
@@ -27,12 +38,12 @@ def entropy_generator(n_sims):
     return entropy_list
 
 
-def main(savepath, n_parallel=2, n_sims=10):
+def main(savepath, simfunc, n_parallel=2, n_sims=10):
 
     sim_entropy = entropy_generator(n_sims)
 
     pool = mp.Pool(n_parallel)
-    results = [pool.apply_async(simulate_epidemic, (s, )) for s in sim_entropy]
+    results = [pool.apply_async(simfunc, (s, )) for s in sim_entropy]
     pool.close()
     outputs = []
     sim_number = 0
@@ -53,6 +64,7 @@ if __name__=='__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Example simulation.')
+    parser.add_argument('-f', '--simfunc', help='Name of model function to simulate, one of "simulate_epidemic" or "simulate_granular_epidemic"')
     parser.add_argument('-o', '--outpath', help='Path to save simulation output')
 
     opts = parser.parse_args()

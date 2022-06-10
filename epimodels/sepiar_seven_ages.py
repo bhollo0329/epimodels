@@ -88,7 +88,6 @@ class SetupNuDefault:
             dims=self.dims, coords=self.coords)
 
 
-
 @xs.process
 class SetupPiDefault:
     """Provide a default value for pi"""
@@ -149,7 +148,7 @@ import pandas as pd
 
 @xs.process
 class Intervention(Partition):
-    # we can add in an intervetion process here if we want
+    # we can add in an intervention process here if we want
     pass
 
 ######################################################################################

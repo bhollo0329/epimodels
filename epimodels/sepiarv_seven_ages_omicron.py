@@ -12,7 +12,7 @@
 #       the function that makes the graph.
 #######################################################################################
 
-from episimlab.models.vaccine import *
+from .vaccine_seven_ages import *
 
 @xs.process
 class SetupComptGraphNoVis(SetupComptGraph):
@@ -22,94 +22,6 @@ class SetupComptGraphNoVis(SetupComptGraph):
 
     def vis(self):
         pass
-
-#######################################################################################
-#  Define the parameter vectors with seven age groups and one risk group
-#  original ages: 0-4, 5-17, 18-49, 50-64, 65+
-#  new ages: 0-4,
-#            5-10 (copy 5-17)
-#            11-13 (copy 5-17)
-#            14-17, (copy 5-17)
-#            18-49, 50-64, 65+
-#  parameters gamma, sigma, mu and rho are handled appropriately in the import
-#  from partition_v1 (these do not have age and risk-specific structure)
-#######################################################################################
-
-
-@xs.process
-class SetupOmega:
-    """Set value of omega"""
-    omega = xs.global_ref('omega', intent='out')
-    _coords = xs.group_dict('coords')
-
-    @property
-    def coords(self):
-        return group_dict_by_var(self._coords)
-
-    @property
-    def omega_dims(self):
-        return get_var_dims(RateS2E, 'omega')
-
-    @property
-    def omega_coords(self):
-        return {dim: self.coords[dim.rstrip('01')] for dim in self.omega_dims}
-
-    def initialize(self):
-        da = xr.DataArray(data=0., dims=self.omega_dims, coords=self.omega_coords)
-
-        # One could set specific values per compartment here
-        da.loc[dict(compt='Ia')] = 0.666666667
-        da.loc[dict(compt='Iy')] = 1.
-        da.loc[dict(compt='Pa')] = [0.91117513, 0.91117513, 0.91117513, 0.91117513, 0.92460653, 0.95798887, 0.98451149]
-        da.loc[dict(compt='Py')] = [1.36676269, 1.36676269, 1.36676269, 1.36676269, 1.3869098, 1.43698331, 1.47676724]
-
-        self.omega = da
-
-
-@xs.process
-class SetupNuDefault:
-    """Provide a default value for nu"""
-    DIMS = ['age']
-    nu = xs.variable(dims=DIMS, global_name='nu', intent='out')
-    _coords = xs.group_dict('coords')
-
-    @property
-    def dims(self):
-        return self.DIMS
-
-    @property
-    def coords(self):
-        return {k: v for k, v in group_dict_by_var(self._coords).items()
-                if k in self.dims}
-
-    def initialize(self):
-        self.nu = xr.DataArray(
-            [0.02878229, 0.09120554, 0.09120554, 0.09120554, 0.02241002, 0.07886779, 0.17651128],
-            dims=self.dims, coords=self.coords)
-
-
-
-@xs.process
-class SetupPiDefault:
-    """Provide a default value for pi"""
-    DIMS = ('risk', 'age')
-    pi = xs.variable(dims=DIMS, global_name='pi', intent='out')
-    _coords = xs.group_dict('coords')
-
-    @property
-    def dims(self):
-        return self.DIMS
-
-    @property
-    def coords(self):
-        return {k: v for k, v in group_dict_by_var(self._coords).items()
-                if k in self.dims}
-
-    def initialize(self):
-        self.pi = xr.DataArray(np.array([
-            [5.92915812e-04, 4.55900959e-04, 4.55900959e-04, 4.55900959e-04, 2.78247788e-02, 5.95202276e-02, 7.03344654e-02],
-            [5.91898663e-03, 4.55299354e-03, 4.55299354e-03, 4.55299354e-03, 2.57483139e-01, 5.07631836e-01, 5.84245731e-01]]),
-            dims=self.dims, coords=self.coords)
 
 #######################################################################################
 #  Import the compartment model engine.
@@ -167,18 +79,26 @@ class SetupCoords:
     """Initialize state coordinates. Imports compartment coordinates from the
     compartment graph.
     """
-    travel_pat = xs.global_ref('travel_pat', intent='in')
+    #travel_pat = xs.global_ref('travel_pat', intent='in')
+    census_fp = xs.variable(intent='in')
     compt = xs.index(dims=('compt'), global_name='compt_coords', groups=['coords'])
     age = xs.index(dims=('age'), global_name='age_coords', groups=['coords'])
     risk = xs.index(dims=('risk'), global_name='risk_coords', groups=['coords'])
     vertex = xs.index(dims=('vertex'), global_name='vertex_coords', groups=['coords'])
     compt_graph = xs.global_ref('compt_graph', intent='in')
 
+    def read_census_csv(self):
+        df = pd.read_csv(
+            self.census_fp, dtype={'GEOID': str}
+        ).drop('Unnamed: 0', axis=1).rename(columns={'GEOID': 'vertex', 'age_bin': 'age'})
+        return df
+
     def initialize(self):
+        df = self.read_census_csv()
         self.compt = self.compt_graph.nodes
-        self.age = self.travel_pat.coords['age0'].values
-        self.risk = ['low', 'high']
-        self.vertex = self.travel_pat.coords['vertex0'].values  # intentionally excludes schools
+        self.age = df['age'].unique()
+        self.risk = df['risk'].unique()
+        self.vertex = df['vertex'].unique()  # intentionally excludes schools
 
 
 #######################################################################################
@@ -218,6 +138,9 @@ class SEPIRSevenAgesNoVis(EpiModel):
         'setup_rho_Ia': rho.SetupRhoIa,
         'setup_rho_Iy': rho.SetupRhoIy,
 
+        # calculate vaccine doses
+        'setup_doses': SetupVaccineDoses,
+
         # used for RateE2Pa and RateE2Py
         'rate_E2P': RateE2P,
         'rate_Ev2P': RateEv2P,
@@ -248,9 +171,12 @@ class SEPIRSevenAgesNoVis(EpiModel):
             'setup_seed__seed_entropy': 12345,
             'rate_S2E__beta': 0.35,
             'beta_reduction': 1.0,  # no beta reduction
+            'rate_S2V__eff_vaccine': 0.8,
             'rate_Iy2Ih__eta': 0.169492,
             'rate_E2Py__tau': 0.57,
             'rate_E2Pa__tau': 0.57,
+            'rate_Ev2Py__tau_v': 0.055,
+            'rate_Ev2Pa__tau_v': 0.055,
             'setup_rho_Ia__tri_Pa2Ia': 2.3,
             'setup_rho_Iy__tri_Py2Iy': 2.3,
             'setup_sigma__tri_exposed_para': [1.9, 2.9, 3.9],
@@ -260,7 +186,8 @@ class SEPIRSevenAgesNoVis(EpiModel):
             # these file paths must be added at runtime
             'travel_pat_fp': None,
             'contacts_fp': None,
-            'census_fp': None
+            'census_fp': None,
+            'hosp_catchment_fp': None
         },
         output_vars={
             'compt_model__state': 'step',
