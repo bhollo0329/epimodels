@@ -40,8 +40,19 @@ class SetupComptGraphNoVis(SetupComptGraph):
 class SetupKappa:
     """Follows same file handling pattern as TravelPatFromCSV"""
 
+    DIMS = ['vertex']
     kappa_fp = xs.variable(global_name='kappa_fp', intent='in')
-    kappa = xs.variable(global_name='kappa', intent='out')
+    kappa = xs.variable(dims=DIMS, global_name='kappa', intent='out')
+    _coords = xs.group_dict('coords')
+
+    @property
+    def dims(self):
+        return self.DIMS
+
+    @property
+    def coords(self):
+        return {k: v for k, v in group_dict_by_var(self._coords).items()
+                if k in self.dims}
 
     def initialize(self):
         self.run_step(None, None)
@@ -104,16 +115,29 @@ class SetupKappa:
 ## TO DO: TESTING, MAKE SURE THAT self.beta = original_beta * self.kappa
 @xs.process
 class SetupBeta:
+    DIMS = ['vertex']
+    beta_0 = xs.variable(global_name='beta_0', intent='in')
     beta = xs.variable(global_name='beta', intent='out')
     kappa = xs.global_ref('kappa', intent='in')
+    _coords = xs.group_dict('coords')
+
+    @property
+    def dims(self):
+        return self.DIMS
+
+    @property
+    def coords(self):
+        return {k: v for k, v in group_dict_by_var(self._coords).items()
+                if k in self.dims}
 
     def initialize(self):
-        self.beta = self.beta
+        self.beta = xr.DataArray(data=self.beta_0, dims=self.dims, coords=self.coords)
 
     def run_step(self):
         """Change beta at certain time points to simulate changing use of NPIs
         """
-        self.beta = self.beta * self.kappa
+        beta = self.beta_0 * self.kappa
+        self.beta = xr.DataArray(data=beta, dims=self.omega_dims, coords=self.omega_coords)
 
 
 @xs.process
@@ -296,6 +320,7 @@ class SEPIRSevenAgesNoVis(EpiModel):
         'setup_rho_Ia': rho.SetupRhoIa,
         'setup_rho_Iy': rho.SetupRhoIy,
         'setup_kappa': SetupKappa,
+        'setup_beta': SetupBeta,
 
         # Used for RateE2Pa and RateE2Py
         'rate_E2P': RateE2P,
@@ -320,7 +345,8 @@ class SEPIRSevenAgesNoVis(EpiModel):
         input_vars={
             'setup_sto__sto_toggle': 0,
             'setup_seed__seed_entropy': 12345,
-            'rate_S2E__beta': 0.35,
+            #'rate_S2E__beta': 0.35,
+            'setup_beta__beta_0': 0.35,
             'rate_Iy2Ih__eta': 0.169492,
             'rate_E2Py__tau': 0.57,
             'rate_E2Pa__tau': 0.57,
