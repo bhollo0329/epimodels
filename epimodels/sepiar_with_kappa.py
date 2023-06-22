@@ -321,7 +321,7 @@ class SEPIRSevenAgesNoVis(EpiModel):
         'setup_rho_Ia': rho.SetupRhoIa,
         'setup_rho_Iy': rho.SetupRhoIy,
         'setup_kappa': SetupKappa,
-        'setup_beta': SetupBeta,
+        #'setup_beta': SetupBeta,
 
         # Used for RateE2Pa and RateE2Py
         'rate_E2P': RateE2P,
