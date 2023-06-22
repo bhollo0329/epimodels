@@ -345,7 +345,7 @@ class SEPIRSevenAgesNoVis(EpiModel):
         input_vars={
             'setup_sto__sto_toggle': 0,
             'setup_seed__seed_entropy': 12345,
-            #'rate_S2E__beta': 0.35,
+            'rate_S2E__beta': 0.35,
             'setup_beta__beta_0': 0.35,
             'rate_Iy2Ih__eta': 0.169492,
             'rate_E2Py__tau': 0.57,
