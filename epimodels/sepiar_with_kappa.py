@@ -111,9 +111,8 @@ class SetupKappa:
         da = ds['kappa']
 
         return da
-
-## TO DO: TESTING, MAKE SURE THAT self.beta = original_beta * self.kappa
 '''
+## TO DO: TESTING, MAKE SURE THAT self.beta = original_beta * self.kappa
 @xs.process
 class SetupBeta:
     DIMS = ['vertex']
@@ -140,7 +139,6 @@ class SetupBeta:
         beta = self.beta_0 * self.kappa
         self.beta = xr.DataArray(data=beta, dims=self.omega_dims, coords=self.omega_coords)
 '''
-
 @xs.process
 class SetupOmega:
     """Set value of omega"""
@@ -347,7 +345,7 @@ class SEPIRSevenAgesNoVis(EpiModel):
             'setup_sto__sto_toggle': 0,
             'setup_seed__seed_entropy': 12345,
             'rate_S2E__beta': 0.35,
-            'setup_beta__beta_0': 0.35,
+            #'setup_beta__beta_0': 0.35,
             'rate_Iy2Ih__eta': 0.169492,
             'rate_E2Py__tau': 0.57,
             'rate_E2Pa__tau': 0.57,
