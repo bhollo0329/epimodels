@@ -111,7 +111,7 @@ class SetupKappa:
         da = ds['kappa']
 
         return da
-'''
+        
 ## TO DO: TESTING, MAKE SURE THAT self.beta = original_beta * self.kappa
 @xs.process
 class SetupBeta:
@@ -138,7 +138,7 @@ class SetupBeta:
         """
         beta = self.beta_0 * self.kappa
         self.beta = xr.DataArray(data=beta, dims=self.omega_dims, coords=self.omega_coords)
-'''
+
 @xs.process
 class SetupOmega:
     """Set value of omega"""
